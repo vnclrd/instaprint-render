@@ -5,7 +5,6 @@ import numpy as np
 import fitz  # PyMuPDF
 from docx import Document
 from io import BytesIO
-from win32com import client
 from fpdf import FPDF
 
 app = Flask(__name__)
