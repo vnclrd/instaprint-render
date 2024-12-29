@@ -6,6 +6,8 @@ import fitz  # PyMuPDF
 from docx import Document
 from io import BytesIO
 from fpdf import FPDF
+import qrcode
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
@@ -338,7 +340,40 @@ def print_document():
         print(f"Error printing document: {e}")
         return jsonify({"error": f"Failed to print document: {e}"}), 500
 
+@app.route('/generate-qr', methods=['GET'])
+def generate_qr():
+    """
+    Generates a QR code for the upload endpoint and serves it as an image.
+    """
+    upload_url = 'https://instaprint.onrender.com/upload'  # Public URL for upload
+    qr = qrcode.make(upload_url)
+    qr_path = os.path.join(app.config['UPLOAD_FOLDER'], 'upload_qr.png')
+    qr.save(qr_path)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], 'upload_qr.png', mimetype='image/png')
 
+@app.route('/online-upload', methods=['GET'])
+def online_upload():
+    """
+    Displays the online upload page with QR code and file listing.
+    """
+    files = os.listdir(app.config['UPLOAD_FOLDER'])  # List uploaded files
+    return render_template('online-display-upload.html', files=files)
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'GET':
+        # Render the upload page
+        return render_template('upload.html')
+    elif request.method == 'POST':
+        if 'file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return jsonify({"message": f"File '{filename}' uploaded successfully"}), 200
+        else:
+            return jsonify({"error": "Invalid file type"}), 400
 
 
 # Update result route to display both previews and segmentation

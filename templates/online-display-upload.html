@@ -3,89 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Uploaded File</title>
+    <title>Online Upload</title>
     <link href="./../static/css/main.css" rel="stylesheet" />
     <link href="./../static/css/uploaded-files.css" rel="stylesheet" />
   </head>
   <body>
     <header class="header">
-      <!-- Left logo -->
-      <img src="./../static/images/pup-logo.png" alt="sample" />
-
-      <!-- Center text -->
-      <div class="center-text">INSTAPRINT</div>
-
-      <!-- Right logo -->
-      <img src="./../static/images/cpe-logo.png" alt="sample" />
+      <img src="./../static/images/pup-logo.png" alt="PUP Logo" />
+      <div class="center-text">INSTAPRINT - Online Upload</div>
+      <img src="./../static/images/cpe-logo.png" alt="CPE Logo" />
     </header>
 
-    <div class="upload-file-container">
-      <div class="scan-qr">
-        <span class="uf-texts">SCAN THIS QR</span>
-        <img class="qr" src="./../static/images/sample qr.png" />
-        <span class="uf-texts">or visit the link below</span>
-        <span class="uf-texts red">www.instaprint.com</span>
-      </div>
-      <div class="uploaded-file">
-        <div class="file-box">
-          {% for file in files %}
-          <div class="file-entry">
-            {% if file.endswith('.pdf') %}
-            <img
-              src="{{ url_for('static', filename='images/pdf.png') }}"
-              alt="PDF Icon"
-            />
-            {% elif file.endswith('.doc') or file.endswith('.docx') %}
-            <img
-              src="{{ url_for('static', filename='images/microsoftword.png') }}"
-              alt="Word Icon"
-            />
-            {% elif file.endswith('.jpg') or file.endswith('.jpeg') or
-            file.endswith('.png') %}
-            <img
-              src="{{ url_for('static', filename='images/image-upload.png') }}"
-              alt="Image Icon"
-            />
-            {% else %}
-            <img
-              src="{{ url_for('static', filename='images/file-icon.png') }}"
-              alt="File Icon"
-            />
-            {% endif %}
-            <a
-              href="{{ url_for('uploaded_file', filename=file) }}"
-              target="_blank"
-              >{{ file }}</a
-            >
+    <main>
+      <div class="upload-file-container">
+        <!-- QR Code Section -->
+        <div class="scan-qr">
+          <h2>Scan the QR Code to Upload Files</h2>
+          <img id="qrCodeImage" class="qr" src="" alt="QR Code" style="display: none;" />
+          <button id="generateQrButton" class="action-button">Generate QR Code</button>
+          <p>or visit: <span class="uf-texts red">https://instaprint.onrender.com/upload</span></p>
+        </div>
+
+        <!-- Uploaded Files Section -->
+        <div class="uploaded-file">
+          <h2>Uploaded Files</h2>
+          <div class="file-box">
+            {% for file in files %}
+            <div class="file-entry">
+              {% if file.endswith('.pdf') %}
+              <img src="{{ url_for('static', filename='images/pdf.png') }}" alt="PDF Icon" />
+              {% elif file.endswith('.doc') or file.endswith('.docx') %}
+              <img src="{{ url_for('static', filename='images/microsoftword.png') }}" alt="Word Icon" />
+              {% elif file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') %}
+              <img src="{{ url_for('static', filename='images/image-upload.png') }}" alt="Image Icon" />
+              {% else %}
+              <img src="{{ url_for('static', filename='images/file-icon.png') }}" alt="File Icon" />
+              {% endif %}
+              <a href="{{ url_for('uploaded_file', filename=file) }}" target="_blank">{{ file }}</a>
+            </div>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
       </div>
     </main>
 
     <script>
-      // JavaScript for updating file input label
-      const fileInput = document.getElementById("fileInput");
-      const fileNameInput = document.getElementById("fileName");
-
-      fileInput.addEventListener("change", () => {
-        if (fileInput.files.length > 0) {
-          fileNameInput.value = Array.from(fileInput.files)
-            .map((file) => file.name)
-            .join(", ");
-        } else {
-          fileNameInput.value = "";
-        }
-      });
-
-      // Exit button functionality
-      const exitButton = document.getElementById("exitButton");
-      exitButton.addEventListener("click", () => {
-        if (confirm("Are you sure you want to exit?")) {
-          window.location.href = "/"; // Replace with the appropriate exit URL
-        }
+      // JavaScript for fetching and displaying the QR code
+      document.getElementById("generateQrButton").addEventListener("click", () => {
+        fetch("/generate-qr")
+          .then((response) => {
+            if (response.ok) {
+              return response.blob();
+            } else {
+              throw new Error("Failed to generate QR code");
+            }
+          })
+          .then((blob) => {
+            const qrImage = document.getElementById("qrCodeImage");
+            qrImage.src = URL.createObjectURL(blob);
+            qrImage.style.display = "block";
+          })
+          .catch((error) => {
+            console.error("Error generating QR code:", error);
+            alert("An error occurred while generating the QR code.");
+          });
       });
     </script>
   </body>
 </html>
-
