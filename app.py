@@ -359,22 +359,21 @@ def online_upload():
     files = os.listdir(app.config['UPLOAD_FOLDER'])  # List uploaded files
     return render_template('online-display-upload.html', files=files)
 
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'GET':
-        # Render the upload page
-        return render_template('upload.html')
-    elif request.method == 'POST':
-        if 'file' not in request.files:
-            return jsonify({"error": "No file part"}), 400
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return jsonify({"message": f"File '{filename}' uploaded successfully"}), 200
-        else:
-            return jsonify({"error": "Invalid file type"}), 400
+@app.route('/upload_form', methods=['GET'])
+def upload_form():
+    return render_template('upload.html')
 
+@app.route('/upload', methods=['POST'])
+def handle_upload():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return jsonify({"message": f"File '{filename}' uploaded successfully"}), 200
+    else:
+        return jsonify({"error": "Invalid file type"}), 400
 
 # Update result route to display both previews and segmentation
 @app.route('/result', methods=['GET'])
