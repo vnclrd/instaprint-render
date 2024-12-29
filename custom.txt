@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manual Upload</title>
+    <link href="./../static/css/main.css" rel="stylesheet" />
+    <!-- Add FontAwesome link for icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <!-- Left logo -->
+      <img src="./../static/images/pup-logo.png" alt="PUP Logo" />
+
+      <!-- Center text -->
+      <div class="center-text">INSTAPRINT</div>
+
+      <!-- Right logo -->
+      <img src="./../static/images/cpe-logo.png" alt="CPE Logo" />
+    </header>
+
+    <main>
+      <div class="upload-area">
+        <h2>Choose File to Upload</h2>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+          <label for="fileInput" class="custom-file-label">
+            <img src="./../static/images/upload-icon.png" alt="Upload" />
+          </label>
+          <input
+            type="file"
+            id="fileInput"
+            name="file"
+            accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+            hidden
+            required
+          />
+          <input
+            type="text"
+            id="fileName"
+            placeholder="Selected file"
+            readonly
+          />
+
+          <div class="button-container">
+            <button id="exitButton" class="action-button" type="button">
+              Exit
+            </button>
+            <button id="continueButton" class="action-button" type="submit">
+              Upload
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="uploaded-file">
+        <div class="file-box grid-layout">
+          <div class="layout-toggle">
+            <!-- Using FontAwesome icons for grid and list view -->
+            <span id="gridIcon" class="layout-icon"><i class="fas fa-th-large"></i></span> <!-- Grid Icon -->
+            <span id="listIcon" class="layout-icon"><i class="fas fa-th-list"></i></span> <!-- List Icon -->
+          </div>
+          {% for file in files %}
+          <div class="file-entry">
+            {% if file.endswith('.pdf') %}
+            <img
+              src="{{ url_for('static', filename='images/pdf.png') }}"
+              alt="PDF Icon"
+            />
+            {% elif file.endswith('.doc') or file.endswith('.docx') %}
+            <img
+              src="{{ url_for('static', filename='images/microsoftword.png') }}"
+              alt="Word Icon"
+            />
+            {% elif file.endswith('.jpg') or file.endswith('.jpeg') or
+            file.endswith('.png') %}
+            <img
+              src="{{ url_for('static', filename='images/image-upload.png') }}"
+              alt="Image Icon"
+            />
+            {% else %}
+            <img
+              src="{{ url_for('static', filename='images/file-icon.png') }}"
+              alt="File Icon"
+            />
+            {% endif %}
+            <a
+              href="{{ url_for('uploaded_file', filename=file) }}"
+              target="_blank"
+              >{{ file }}</a
+            >
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal Structure -->
+    <!-- First Modal -->
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <h2>FILE SELECTED</h2>
+        <img src="./../static/images/pdf.png" alt="PDF" class="modal-pdf" />
+        <p>filename.pdf</p>
+        <p class="p-modal">DO YOU WANT TO PROCEED?</p>
+        <div class="button-container">
+          <button class="exit">EXIT</button>
+          <button class="yes">YES</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second Modal -->
+    <div id="newModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-columns">
+          <div class="column1">
+            <h3>PAGE RANGE</h3>
+            <form>
+              <label>
+                <input type="radio" name="page-range" id="checkbox1" /> &nbsp;Current
+                Page
+              </label>
+              <label>
+                <input type="radio" name="page-range" id="checkbox2" /> &nbsp;All
+                Pages
+              </label>
+              <label>
+                <input type="radio" name="page-range" id="checkbox3" /> &nbsp;Custom
+                Range
+              </label>
+              <!-- Custom Range Input -->
+              <div id="customRangeContainer" style="display: none;">
+                <input type="text" id="customRange" placeholder="Enter page range (e.g., 1-5)" />
+              </div>
+            </form>
+          </div>
+
+          <div class="column2">
+            <h3>PAPER SIZE</h3>
+            <form>
+              <label>
+                <input type="radio" name="paper-size" id="checkbox1" /> &nbsp;Letter
+              </label>
+              <label>
+                <input type="radio" name="paper-size" id="checkbox2" /> &nbsp;Legal
+              </label>
+              <label>
+                <input type="radio" name="paper-size" id="checkbox3" /> &nbsp;A4
+              </label>
+            </form>
+          </div>
+
+          <div class="column3">
+            <h3>COLOR OPTIONS</h3>
+            <form>
+              <label>
+                <input type="radio" name="color-option" id="checkbox1" /> &nbsp;Colored
+              </label>
+              <label>
+                <input type="radio" name="color-option" id="checkbox2" /> &nbsp;Grayscale
+              </label>
+            </form>
+          </div>
+        </div>
+        <div>
+          <button class="close-second-modal">EXIT</button>
+          <button class="continue">CONTINUE</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // JavaScript for updating file input label
+      const fileInput = document.getElementById("fileInput");
+      const fileNameInput = document.getElementById("fileName");
+
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+          fileNameInput.value = Array.from(fileInput.files)
+            .map((file) => file.name)
+            .join(", ");
+        } else {
+          fileNameInput.value = "";
+        }
+      });
+
+      // MODAL
+      const myModal = document.getElementById("myModal");
+      const newModal = document.getElementById("newModal");
+
+      const exitButton = document.querySelector(".exit");
+      const yesButton = document.querySelector(".yes");
+      const closeSecondModalButton = document.querySelector(".close-second-modal");
+
+      const fileEntries = document.querySelectorAll(".file-entry img");
+      const fileLinks = document.querySelectorAll(".file-entry a");
+
+      function openModal(fileName) {
+        myModal.style.display = "block";
+        const modalImage = myModal.querySelector(".modal-pdf");
+        const modalText = myModal.querySelector("p");
+
+        modalImage.src = "./../static/images/pdf.png"; // or other icon depending on the file type
+        modalText.textContent = fileName;
+      }
+
+      fileEntries.forEach(img => {
+        img.addEventListener("click", () => {
+          const fileName = img.closest(".file-entry").querySelector("a").textContent;
+          openModal(fileName);
+        });
+      });
+
+      fileLinks.forEach(link => {
+        link.addEventListener("click", () => {
+          const fileName = link.textContent;
+          openModal(fileName);
+        });
+      });
+
+      exitButton.addEventListener("click", () => {
+        myModal.style.display = "none";
+      });
+
+      yesButton.addEventListener("click", () => {
+        myModal.style.display = "none";
+        newModal.style.display = "block";
+      });
+
+      closeSecondModalButton.addEventListener("click", () => {
+        newModal.style.display = "none";
+      });
+
+      window.addEventListener("click", (event) => {
+        if (event.target === myModal || event.target === newModal) {
+          myModal.style.display = "none";
+          newModal.style.display = "none";
+        }
+      });
+
+      // Toggle layout
+      const gridIcon = document.getElementById("gridIcon");
+      const listIcon = document.getElementById("listIcon");
+      const fileBox = document.querySelector(".file-box");
+
+      gridIcon.addEventListener("click", () => {
+        fileBox.classList.remove("list-layout");
+        fileBox.classList.add("grid-layout");
+      });
+
+      listIcon.addEventListener("click", () => {
+        fileBox.classList.remove("grid-layout");
+        fileBox.classList.add("list-layout");
+      });
+
+      // Show custom range input when the "Custom Range" option is selected
+      const customRangeOption = document.getElementById("checkbox3");
+      const customRangeContainer = document.getElementById("customRangeContainer");
+
+      customRangeOption.addEventListener("change", () => {
+        if (customRangeOption.checked) {
+          customRangeContainer.style.display = "block";
+        } else {
+          customRangeContainer.style.display = "none";
+        }
+      });
+    </script>
+  </body>
+</html>
