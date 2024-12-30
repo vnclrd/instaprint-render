@@ -6,7 +6,6 @@ import fitz  # PyMuPDF
 from docx import Document
 from io import BytesIO
 from fpdf import FPDF
-import qrcode
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
