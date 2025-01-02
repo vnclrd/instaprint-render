@@ -5,6 +5,8 @@ import numpy as np
 import fitz  # PyMuPDF
 from docx import Document
 from io import BytesIO
+import pythoncom
+from win32com import client
 from fpdf import FPDF
 from werkzeug.utils import secure_filename
 
